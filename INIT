@@ -24,6 +24,7 @@ if [ -z $WP_INITIALISED ]; then
 	print::warning "Wait until complete. Then execute run from SHELL."
 	print::hr _
 	print::hr =
-	
+
+	set-env
 	run --init
 fi
