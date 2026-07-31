@@ -522,7 +522,7 @@ aside.website.open > section.iframe {
 	background-position: center bottom;
 	background-repeat: no-repeat;
 	background-size: cover;
-	height: 600px;
+	height: min(100vw, 670px);
 	width: calc(100% + 2 * var(--space-small));
 	margin-left: calc(-1 * var(--space-small));
 }
