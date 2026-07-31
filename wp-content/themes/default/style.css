@@ -526,7 +526,7 @@ aside.website.open > section.iframe {
 }
 
 .body section.band-members li {
-	margin: var(--space) 0;
+	margin: var(--space-large) 0;
 }
 
 .body footer {
