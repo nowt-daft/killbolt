@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+declare -A __IMPORTED__
+
+function __find_root {
+	local DIR=${1:-$PWD}
+
+	if [ $DIR == '/' ]; then
+		return 1
+	fi
+
+	if [ -d $DIR/.bashstrap ]; then
+		echo $DIR
+		return 0
+	fi
+
+	echo $(__find_root `dirname $DIR`)
+}
+
+function import {
+	if ! [ -f $1 ]; then
+		return 1
+	fi
+
+	# if [[ ${__IMPORTED__[$1]} == true ]]; then
+	# 	return 0
+	# fi
+	#
+	# __IMPORTED__[$1]=true
+	source $1
+}
+
+function include {
+	if [ -z $ROOT ]; then
+		export ROOT=$(__find_root)
+	fi
+	local INCLUDES_DIR=${ROOT:-$HOME}/includes
+	import $INCLUDES_DIR/$1 || import $HOME/includes/$1
+}
+
+function set-env {
+	local ENV_FILE=${1:-".env"}
+	local DEFAULT_FILE=${2:-".env.default"}
+
+	local ENV=
+	if [ -f $ENV_FILE ]; then
+		ENV=$ENV_FILE
+	elif [ -f $DEFAULT_FILE ]; then
+		ENV=$DEFAULT_FILE
+	else
+		return 1;
+	fi
+
+	set -o allexport
+	import $ENV
+	set +o allexport
+}
+
+set-env
+import   $ROOT/.path

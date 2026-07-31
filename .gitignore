@@ -4,6 +4,7 @@
 !.gitignore
 
 # CONFIG
+!.bashstrap
 !.rc
 !.htaccess
 !.env.vars
