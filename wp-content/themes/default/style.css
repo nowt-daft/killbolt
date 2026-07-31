@@ -521,6 +521,14 @@ aside.website.open > section.iframe {
 	list-style: none;
 }
 
+.body section.band-members h3 {
+	margin: 0;
+}
+
+.body section.band-members li {
+	margin: var(--space) 0;
+}
+
 .body footer {
 	background-image: url("/wp-content/themes/default/assets/img/toy-band.png");
 	background-position: center bottom;
