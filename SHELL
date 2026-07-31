@@ -64,7 +64,7 @@ function SHELL::start {
 		return 1
 	fi
 
-	if [ $ROOT == $PWD ]; then
+	if [[ $ROOT == $PWD ]]; then
 		include print
 		print::warning "[ABORT] Already inside SHELL."
 		exit 1
