@@ -116,6 +116,12 @@ h1, h2, h3, h4, h5, h6 {
 	margin: var(--space-large) 0;
 }
 
+.body > main,
+.body footer {
+	max-width: 600px;
+	margin: 0 auto;
+}
+
 .body > main > section {
 	max-width: 960px;
 	margin: var(--space-large) auto;
