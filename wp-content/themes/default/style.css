@@ -517,6 +517,10 @@ aside.website.open > section.iframe {
 	font-size: 1.25rem;
 }
 
+.body section.band-members ul {
+	list-style: none;
+}
+
 .body footer {
 	background-image: url("/wp-content/themes/default/assets/img/toy-band.png");
 	background-position: center bottom;
