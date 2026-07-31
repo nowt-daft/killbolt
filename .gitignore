@@ -5,6 +5,9 @@
 
 # CONFIG
 !.bashstrap
+!.path
+!.path.d/
+!.path.d/*
 !.rc
 !.htaccess
 !.env.vars

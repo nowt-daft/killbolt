@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+include string
+
+NEW_PATH=""
+
+function path::add {
+	local path=$1
+	if [ -z $NEW_PATH ]; then
+		NEW_PATH="$path"
+	elif ! [[ $NEW_PATH == *$path* ]]; then
+		NEW_PATH="$path:$NEW_PATH"
+	fi
+}
+
+## ALL CURRENT PATHS:
+paths=$(string::split "$PATH" "\:")
+
+## ADD NON-DUPLICATES:
+for path in $paths; do
+	path::add $path
+done
+
+## ADD FROM USER/PROJECT PATHS:
+for path_file in $(ls $ROOT/.path.d); do
+	PATHS_TO_ADD=$(eval echo $(cat $ROOT/.path.d/$path_file))
+	for path in $PATHS_TO_ADD; do
+		path::add $path
+	done
+done
+
+export PATH=$NEW_PATH
