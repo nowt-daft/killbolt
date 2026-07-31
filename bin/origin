@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+include prompt
+
+ORIGIN=$(git config --get remote.origin.url)
+
+if [ -z $ORIGIN ]; then
+	print::hr
+	ORIGIN=$(prompt::input::type "URL" "[GIT] Remote Origin")
+	git remote add origin $ORIGIN
+	if [[ $ORIGIN == *github.com* ]]; then
+		git branch -M main
+		git add .
+		git commit -m "@INIT"
+		git push -u origin main
+	fi
+fi
+
+print::hr
+print::key-value "ORIGIN" "$ORIGIN"
+print::hr
+print::done
+
+# TODO: NOW THAT ORIGIN IS SET, WE SHOULD PERFORM A LOG-IN
+# TO THE SERVER AND DO THE FOLLOWING:
+# IT MIGHT BE THAT I SIMPLY ADD THIS TO SSH CONFIG?
+#	- git init
+#	- git remote add origin $ORIGIN; and
+#	- git pull origin master --allow-unrelated-histories
+#	- (.htaccess file might need moved/deleted)

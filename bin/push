@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+
+COMMENT="$@"
+
+print::hr
+println PUSH
+println --muted "$COMMENT"
+print::hr
+
+if [ -z "$COMMENT" ]; then
+	print::error "[MISSING] Push requires a comment."
+	exit 1
+fi
+
+git add . && \
+	git status && \
+	git commit -m "$COMMENT" && \
+	git push || \
+	print::error "[FAIL] Error pushing content to repo."
+
+if [[ $SSH_INSTALLED == true ]]; then
+	print::hr
+	print::info FORCING SERVER TO UPDATE
+	print::hr
+	ssh $(basename $ROOT)-update
+fi
+
+print::hr
+print::done

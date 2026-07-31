@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include	print
+include prompt
+include sys
+
+DB_FILE=$1
+FLAG=$2
+CONTAINER_NAME=$(basename $ROOT)-database-1
+
+print::hr
+
+if [ -z $DB_FILE ]; then
+	print::error "[MISSING] No database file passed."
+	exit 1
+fi
+if ! [ -f $DB_FILE ]; then
+	print::error "[INVALID] $DB_FILE is NOT a file."
+	exit 2
+fi
+
+print::info "$CONTAINER_NAME..."
+
+if podman ps | grep $CONTAINER_NAME &> /dev/null; then
+	podman stop $CONTAINER_NAME
+	print --muted "stop..."
+fi
+if podman ps -a | grep $CONTAINER_NAME &> /dev/null; then
+	podman rm $CONTAINER_NAME
+	println --muted "remove..."
+fi
+
+print::hr
+print::info "Removing data from local project:"
+sudo rm -rf $ROOT/database/data
+print::hr
+print::info "Copying $DB_FILE -> database/initdb.d"
+sudo cp -f $DB_FILE $ROOT/database/initdb.d/ &> /dev/null
+
+print::hr
+mkdir -pv database/data/
+print::hr
+
+if [[ $FLAG != "--no-prompt" ]]; then
+	if prompt::confirm "Do you need to update DATABASE values?"; then
+		setup-db
+	else
+		print::ok "MOVING ON..."
+	fi
+fi
+
+print::hr
+print::done "Execute \`run\` command to respawn database container"

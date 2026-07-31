@@ -1,0 +1,43 @@
+*
+
+# THIS
+!.gitignore
+
+# CONFIG
+!.rc
+!.htaccess
+!.env.vars
+!.env.example
+!compose.yml
+!init-compose.yml
+
+# SCRIPTS
+!INIT
+!INIT_SERVER
+!INSTALL_KEY
+!SHELL
+
+# MORE SCRIPTS
+!bin/
+!bin/*
+
+# EVENT MORE SCRIPTS
+!includes
+!includes/*
+!includes/**/*
+
+# DOCUMENTATION
+!README.md
+!docs/
+!docs/*
+!docs/**/*
+
+# WEBSITE SOURCE CODE
+!wp-content/
+!wp-content/*
+!wp-content/**/*
+
+# DATABASE MIGRATION SCRIPT
+!database/
+!database/initdb.d/
+!database/initdb.d/migrate.sh

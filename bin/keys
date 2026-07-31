@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+
+SSH_DIR=$HOME/.ssh
+
+function keys::usage {
+	print::hr
+	print::warning "USAGE: keys <list|add|new|config> ..."
+
+	declare -A opts
+	opts["list"]="List all keys and config files"
+	opts["add"]="Add an existing key to your ssh directory"
+	opts["new"]="Generate a new ssh key"
+	opts["config"]="Generate a new configuration for a key"
+
+	print::table opts
+
+	return 1
+}
+
+function keys::list {
+	print::hr
+	println --azure KEYS
+	for key in $(ls $SSH_DIR); do
+		if [ -f $SSH_DIR/$key ] && \
+			! [[ $key == *.pub ]] && \
+			! [[ $key == known_hosts* ]] && \
+			! [[ $key == config ]]; then
+			echo -e "  $(print --muted •) $(print $key)"
+		fi
+	done
+	print::hr
+	println --azure CONFIGS
+	for config in $(ls $SSH_DIR/config.d); do
+		echo -e "  $(print --muted •) $(print $config)"
+	done
+}
+
+function keys::add {
+	local NAME=$1
+	local FILE=$2
+
+	if [ -z $NAME ] || [ -z $FILE ]; then
+		keys::add::usage
+		return 1
+	fi
+	
+	print::hr
+
+	if ! [ -f $FILE ]; then
+		print::error "$FILE does not exist."
+		return 2
+	fi
+
+	if [ -f $SSH_DIR/$NAME ]; then
+		print::error "$NAME already exists as a key."
+		return 3
+	fi
+
+	##
+
+	cp $FILE $SSH_DIR/$NAME
+	print::ok " 🗎 $FILE -> .ssh/$NAME"
+}
+
+function keys::add::usage {
+	print::hr
+	print::warning "USAGE: keys add <name> <file>"
+}
+
+function keys::new {
+	local NAME=$1
+	local LOCAL_USER="$USER@$HOSTNAME"
+
+	if [ -z $NAME ]; then
+		keys::new::usage
+		return 1
+	fi
+
+	##
+
+	print::hr
+	print::key-value "CONNECTION NAME" $NAME
+	print::key-value "LOCAL USER" $LOCAL_USER
+	print::hr
+
+	if [ -f $SSH_DIR/$NAME ]; then
+		print::error "🫣 Connection $NAME already exists."
+		return 2
+	fi
+
+	##
+
+	ssh-keygen -t ed25519 -C "$LOCAL_USER" -f "$SSH_DIR/$NAME"
+	print::ok "Key generated -> .ssh/$NAME"
+}
+
+function keys::new::usage {
+	print::hr
+	print::warning "USAGE: keys new <name>"
+}
+
+function keys::config {
+	local NAME=$1
+	local REMOTE_USER=$2
+	local HOST=$3
+	local PORT=${4:-2222}
+	local REMOTE_PATH=${5:-"."}
+	# local LOCAL_USER="$USER@$HOSTNAME"
+
+	if [ -z $NAME ] || [ -z $REMOTE_USER ] || [ -z $HOST ]; then
+		keys::config::usage
+		return 1
+	fi
+
+	##
+
+	print::hr
+	print::key-value "CONNECTION NAME" $NAME
+	print::key-value "REMOTE USER" $REMOTE_USER
+	print::key-value "HOST/DOMAIN" $HOST
+	print::key-value "SSH PORT" $PORT
+	print::key-value "LOGIN PATH" $REMOTE_PATH
+	# print::key-value "LOCAL USER" $LOCAL_USER
+	print::hr
+
+	##
+
+	if ! [ -f $SSH_DIR/$NAME ]; then
+		print::error "🫣 No key exists for $NAME"
+		print::log "Try adding or generating a key first."
+		return 2
+	fi
+
+	if ! [ -f $SSH_DIR/config ]; then
+		cp $TEMPLATES_DIR/ssh/config $SSH_DIR
+		print::ok "🗎 SSH CONFIG TEMPLATE -> .ssh/config"
+	fi
+	
+	local CONFIG_DIR=$SSH_DIR/config.d
+
+	if ! [ -d $CONFIG_DIR ]; then
+		mkdir -p $CONFIG_DIR
+		print::ok "🗁  CONFIG FOLDER CREATED -> .ssh/config.d/"
+	fi
+
+	local CONFIG_FILE=$CONFIG_DIR/$NAME
+
+	if [ -f $CONFIG_FILE ]; then
+		print::warning "Config $NAME already exists. Stopping to be safe."
+		return 3
+	fi
+
+	cp $TEMPLATES_DIR/ssh/config.d/\$NAME $CONFIG_FILE
+	print::ok "🖺 HOST CONFIG TEMPLATE -> .ssh/config.d/$NAME"
+
+	##
+
+	declare -A vars
+	vars["\$NAME"]=$NAME
+	vars["\$HOST"]=$HOST
+	vars["\$USER"]=$REMOTE_USER
+	vars["\$PORT"]=$PORT
+	vars["\$KEY_PATH"]="$SSH_DIR/$NAME"
+	vars["\$SERVER_PATH"]=$REMOTE_PATH
+
+	for key in ${!vars[@]}; do
+		sed -i "s|$key|${vars[$key]}|g" $CONFIG_FILE
+	done
+
+	print::ok "-> TEMPLATE RENDERED"
+}
+
+function keys::config::usage {
+	print::hr
+	print::warning "Three arguments required: name, user, and host"
+	print::warning "USAGE: keygen <name> <user> <hostname> <port?=2222> <path?=.>"
+}
+
+TASK=$1
+shift
+
+case $TASK in
+	list) keys::list ;;
+	add) keys::add $@ ;;
+	new) keys::new $@ ;;
+	config) keys::config $@ ;;
+	*) keys::usage ;;
+esac
+
+STATUS=$?
+if [[ $STATUS -gt 0 ]]; then
+	print::hr
+	print::bad-exit $STATUS
+	exit $STATUS
+fi
+print::hr
+print::done
+exit $STATUS
+

@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+include print
+include sys
+
+function template::file::render {
+	local PREFIX="🖉  TEMPLATE RENDER ->"
+
+	if [ -z $1 ]; then
+		print::error "$PREFIX [MISSING] No file."
+		return 1
+	fi
+
+	if [ -z $2 ]; then
+		print::error "$PREFIX [MISSING] No data."
+		return 2
+	fi
+
+	local FILE=$1
+	local -n DATA=$2
+
+	if ! [ -f $FILE ]; then
+		print::error "$PREFIX [DOES NOT EXIST] $FILE"
+		return 3
+	fi
+
+	for key in ${!DATA[@]}; do
+		if ! sed -i "s|$key|${DATA[$key]}|g" $FILE; then
+			print::error "$PREFIX [ABORTED] $FILE"
+			return 4
+		fi
+	done
+}
+
+function template::file::copy {
+	local PREFIX="🗐 TEMPLATE COPY ->"
+
+	local SRCE=$TEMPLATES_DIR/$1
+	local DEST=$2
+
+	if [ -f $DEST ]; then
+		print::error "$PREFIX [ABORTED] File already exists."
+		return 1
+	fi
+
+	if ! sys::copy $SRCE $DEST; then
+		print::error "$PREFIX [FAILED] $SRCE -> $DEST"
+		return 2
+	fi
+
+	print::ok "$PREFIX [DONE] $(print --muted "$(basename $1) -> $2")"
+}
+
+function template::file {
+	local PREFIX="🗎 TEMPLATE FILE ->"
+
+	if [ -z $1 ] || [ -z $2 ]; then
+		print::error "$PREFIX [MISSING] Template source and output file."
+		return 1
+	fi
+
+	if [ -z $3 ]; then
+		print::error "$PREFIX [MISSING] No data."
+		return 2
+	fi
+
+	local SRCE=$1
+	local DEST=$2
+	local -n RENDER_DATA=$3
+
+	if ! template::file::copy $SRCE $DEST; then
+		print::error "$PREFIX [FAILED COPY] $SRCE -> $DEST"
+		return 3
+	fi
+	if ! template::file::render $DEST RENDER_DATA; then
+		print::error "$PREFIX [FAILED RENDER] $DEST"
+		return 4
+	fi
+
+	print::ok \
+		"$PREFIX [DONE] Copied and rendered $(print --muted "$(basename $1) -> $DEST")"
+}
+
+function template::directory::create {
+	local PREFIX="🗁  DIRECTORY CREATE ->"
+	local DIR=$1
+	if ! sys::mkdir $DIR; then
+		print::error "$PREFIX [FAILED] $DIR"
+		return 1
+	fi
+	print::ok "$PREFIX [DONE] $(print --muted "$DIR")"
+}
+
+function template::directory::copy {
+	local PREFIX="🗁  TEMPLATE DIRECTORY ->"
+
+	local SRCE=$1
+	local DEST=$2
+	local DEPTH=${3:-0}
+
+	local INDENT=$(print::repeat $DEPTH "..")
+
+	if ! [ -d $TEMPLATES_DIR/$SRCE ]; then
+		print::error "$PREFIX [DOES NOT EXIST] $SRCE"
+		return 1
+	fi
+
+	if ! [ -d $DEST ]; then
+		print::hr
+		if ! template::directory::create $DEST; then
+			print::error "$INDENT $PREFIX [CREATION FAILED] $DEST"
+			return 2
+		fi
+	fi
+
+	# print::hr
+	# println --muted "$INDENT $PREFIX $SRCE -> $DEST"
+
+	for node in $(sys::ls $TEMPLATES_DIR/$SRCE); do
+		if [ -f $TEMPLATES_DIR/$SRCE/$node ]; then
+			print::hr
+			if ! template::file::copy $SRCE/$node $DEST; then
+				print::warning "$INDENT $PREFIX [COPY FAILED] $(basename $SRCE)/$node"
+			fi
+		elif [ -d $TEMPLATES_DIR/$SRCE/$node ]; then
+			if ! template::directory::copy $SRCE/$node $DEST/$node $(($DEPTH + 1)); then
+				print::warning "$INDENT $PREFIX [CREATION FAILED] $(basename $SRCE)/$node"
+			fi
+		fi
+	done
+}

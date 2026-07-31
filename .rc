@@ -1,0 +1,7 @@
+include sys
+include print
+
+if ! $ROOT/INIT; then
+	print::error "[EXITING] FAILED TO INTIALISE."
+	exit 1
+fi

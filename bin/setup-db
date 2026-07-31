@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include sys
+include print
+include prompt
+
+print::hr
+println "DATABASE SETTINGS"
+print::hr
+
+KEYS=( MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD WP_TABLE_PREFIX )
+sys::file::set::uncomment $ROOT/.env.vars WP_TABLE_PREFIX
+
+print::info "BLANK entries will become previous value."
+print::hr
+
+for key in ${KEYS[@]}; do
+	prev_value=$(eval echo \$$key)
+	resp=$(prompt::input::type "$prev_value" "$key")
+	if [ -z $resp ]; then
+		continue
+	fi
+
+	sys::file::set $ROOT/.env $key $resp
+	print::key-value $key $resp
+	print::hr
+done
+
+print::ok

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+include sys
+include string
+include print
+
+function prompt::input {
+	local LABEL=$1
+	if ! read -p "$(\
+		print --bold --inverse --grey " $LABEL: " && \
+		print " " \
+	)" response; then
+		return 1
+	fi
+	echo "$response"
+}
+
+function prompt::input::type {
+	local TYPE=$1
+	local LABEL=$2
+
+	prompt::input "$LABEL ($TYPE)"
+}
+
+function prompt::confirm {
+	local QUESTION=$1
+	if ! read -p "$(\
+		print --bold --inverse --orange " ⚠ $QUESTION " && print " [y|N]: ")" response; then
+		return 1
+	fi
+	case $response in
+		y*) return 0;;
+		*) return 1;;
+	esac
+}
+
+function prompt::form {
+	local FORM_FILE=$1
+	# TODO: If no OUT_FILE, it should be a simple echo...
+	local OUT_FILE=$2
+
+	for line in $(cat $FORM_FILE); do
+		if [ -z $line ] || [[ $line == "#"* ]]; then
+			continue
+		fi
+
+		local PAIR=( $(string::split $line =) )
+		local KEY=${PAIR[0]}
+		local TYPE=${PAIR[1]}
+
+		if [ -z $TYPE ]; then
+			TYPE=text
+		fi
+
+		if sys::file::contains $OUT_FILE "$KEY="; then
+			continue
+		fi
+
+		if ! sys::file::set $OUT_FILE $KEY $(prompt::input::type $TYPE $KEY); then
+			return 1
+		fi
+	done
+}

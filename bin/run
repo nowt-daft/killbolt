@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+
+FLAG=$1
+WAIT_TIME=20
+
+print::hr
+
+if [[ $FLAG == "--init" ]]; then
+	podman compose -f $ROOT/init-compose.yml up
+else
+	podman compose -f $ROOT/compose.yml up --detach
+	print::hr
+	print::countdown $WAIT_TIME "[WAITING]"
+	podman exec -it $(basename $ROOT)-database-1 /docker-entrypoint-initdb.d/migrate.sh run
+	print::hr
+	print::done "[SUCCESS] CONTAINERS ARE RUNNING. Use \`stop\` to spin-down pods."
+fi

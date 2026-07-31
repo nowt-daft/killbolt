@@ -1,0 +1,530 @@
+/**
+Theme Name: default
+Text Domain: default
+Description:
+Tags:
+*/
+:root {
+	/* COLORS */
+	--black: #0C0F14;
+	--grey: #2B3036;
+	--grey-lite: #A3AAB4;
+	--white: #EDEFF0;
+	--blue: #4A5DF9;
+	--dark-blue: #101C2C;
+
+	/* SEMANTIC COLOURS */
+	--bg-color: var(--black);
+	--text-color: var(--white);
+	--button-bg-color: var(--grey);
+	--cta-color: var(--blue);
+	
+	/* FONTS AND SIZES */
+	--base-font: Helvetica, "Noto", "Open Sans", sans-serif;
+	--heading-font: "UnifrakturCook";
+	--site-font:
+		"Grenze", Trebuchet, "MS Trebuchet",
+		Helvetica, "Noto", "Open Sans", sans-serif;
+	
+	/* PADDING/SPACING */
+	--space-small: 10pt;
+	--space: 20pt;
+	--space-large: 40pt;
+}
+
+html {
+	box-sizing: border-box;
+	margin:0;
+}
+
+*,
+*:before,
+*:after {
+	box-sizing: inherit;
+	outline: none;
+}
+
+body {
+	color: var(--text-color);
+	background-color: var(--bg-color);
+	font-family: var(--base-font);
+	font-size: 100%;
+	line-height: 1.25;
+	margin: 0;
+}
+
+body.disabled {
+	height: 100vh;
+	overflow: hidden !important;
+}
+
+img {
+	max-width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1;
+	margin: 0.5em 0 1em;
+}
+
+.body h1,
+.body h2,
+.body h3,
+.body h4,
+.body h5,
+.body h6 {
+	font-family: var(--site-font);
+	/* font-family: var(--heading-font); */
+}
+
+.body h1 {
+	font-size: 2.75rem;
+}
+
+.body h2 {
+	font-size: 2.25rem;
+}
+
+.body h3 {
+	font-size: 2rem;
+	font-weight: normal;
+}
+
+.body h4 {
+	font-size: 1.8125rem;
+	font-weight: normal;
+}
+
+.body h5 {
+	font-size: 1.5rem;
+	font-weight: normal;
+}
+
+.body h6 {
+	font-size: 1.25rem;
+	font-weight: normal;
+}
+
+.body hr {
+	border: none;
+	background: url("./assets/img/hr.png");
+	background-position: center;
+	background-repeat: repeat-x;
+	background-size: contain;
+	height: 0;
+	padding-top: 38px;
+	margin: var(--space-large) 0;
+}
+
+.body > main > section {
+	max-width: 960px;
+	margin: var(--space-large) auto;
+}
+
+button {
+	color: var(--text-color);
+	background-color: var(--button-bg-color);
+	border: none;
+	border-radius: 10px;
+	font-family: var(--base-font);
+	font-size: 1.125rem;
+	font-weight: bold;
+	text-align: center;
+	padding: var(--space-small);
+}
+
+button.cta {
+	background-color: var(--cta-color);
+}
+
+ul.posts {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: 2px;
+
+	margin: 0;
+	padding:0;
+	list-style: none;
+}
+
+ul.posts > li {
+	flex-grow: 1;
+	flex-basis: 33%;
+
+	background-color: var(--grey);
+	aspect-ratio: 0.8125;
+}
+
+header > menu {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: flex-end;
+	gap: var(--space);
+	padding: var(--space);
+	margin:0;
+}
+
+header > menu > h1 {
+	font-size: 1.5rem;
+	margin: 0 auto 0 0;
+}
+
+menu > button,
+aside > section.chrome > button {
+	background-color: transparent;
+	font-size: 1.75rem;
+	padding: 0;
+}
+
+article header {
+	display: flex;
+	flex-flow: row nowrap;
+	gap: var(--space);
+	padding: 0 var(--space);
+	margin: var(--space) 0;
+}
+
+article header > div.avatar {
+	--border-width: 4px;
+	
+	background-image: linear-gradient(to right, #BC0EB2, #FA1758, #F8CA0D);
+
+	width: 110px;
+	height: 110px;
+	padding: var(--border-width);
+
+	border-radius:50%;
+	aspect-ratio: 1;
+}
+
+article header > div.avatar img {
+	border: 4px solid var(--bg-color);
+	border-radius: inherit;
+	width: 100%;
+}
+
+article header > div.details {
+	flex-grow: 2;
+	margin-right: var(--space-large);
+}
+
+article header > div.details > h1 {
+	font-size: 1.125rem;
+}
+
+article header ul.stats {
+	display:flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+article header ul.stats span {
+	display: block;
+}
+
+article header ul.stats span.number {
+	font-weight: bold;
+}
+
+article p.description {
+	color: var(--grey-lite);
+	padding: 0 var(--space);
+	margin: var(--space) 0;
+}
+
+article footer.actions {
+	display: flex;
+	flex-flow: row nowrap;
+	gap: var(--space-small);
+	padding: 0 var(--space);
+	margin: var(--space) 0;
+}
+
+article footer.actions > button {
+	flex-grow: 1;
+	flex-basis: 50%;
+}
+
+aside.website {
+	position: fixed;
+	top: 66vh;
+	left: 0;
+	right: 0;
+	height: 100vh;
+	z-index: 100;
+
+	transition: top 250ms ease 0s;
+
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+aside.website.open {
+	top: 0vh;
+}
+
+aside.website > section {
+	position: relative;
+	z-index: 101;
+}
+
+aside.website > section.chrome {
+	color: var(--text-color);
+	background-color: var(--grey);
+
+	border-top-left-radius: 40px;
+	border-top-right-radius: 40px;
+
+	box-shadow: 0 0 20px #00000055;
+
+	text-align: center;
+	padding: 0 0 var(--space-small);
+
+	flex-grow: 0;
+
+	transition:
+		border-top-left-radius 250ms ease 0s,
+		border-top-right-radius 250ms ease 0s;
+}
+
+aside.website.open > section.chrome {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+
+	padding: var(--space-small) 0;
+}
+
+aside.website > section.chrome > h2 {
+	font-size: 0.8125rem;
+	margin-bottom: 0;
+}
+
+aside.website.open > section.chrome > h2 {
+	font-size: 0.92em;
+	margin-bottom: var(--space-small);
+}
+
+aside.website.open > section.chrome > button {
+	display:none;
+}
+
+aside.website > section.iframe {
+	background-color: var(--bg-color);
+	flex-grow: 10;
+	overflow: hidden;
+}
+
+aside.website.open > section.iframe {
+	overflow-y: auto;
+}
+
+.body {
+	background-image: linear-gradient(
+		to top,
+		var(--dark-blue),
+		var(--bg-color)
+	);
+	font-family: var(--site-font);
+	padding: var(--space-small);
+	min-height: 1000px;
+}
+
+.body > header {
+	text-align: center;
+}
+
+.body > header > h1 > span {
+	--delay: 0s;
+	display: inline-block;
+
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+
+	height: min(40vw, 270px);
+
+	line-height: 2;
+	overflow: hidden;
+
+	opacity: 0;
+}
+
+.body > header > h1.visible > span {
+	opacity: 1;
+	transition: opacity 500ms ease var(--delay);
+}
+
+.body > header > h1 > span.k {
+	--delay: 1s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/k.png"
+		);
+	/* width: 92px; */
+	aspect-ratio: 0.3407;
+}
+
+.body > header > h1 > span.l {
+	--delay: 1.75s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/l.png"
+		);
+	/* width: 77px; */
+	aspect-ratio: 0.2852;
+}
+
+.body > header > h1 > span.b {
+	--delay: 0.5s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/b.png"
+		);
+	/* width: 99px; */
+	aspect-ratio: 0.3667;
+}
+
+.body > header > h1 > span.o {
+	--delay: 1.25s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/o.png"
+		);
+	/* width: 91px; */
+	aspect-ratio: 0.3370;
+}
+
+.body > header > h1 > span.t {
+	--delay: 0.75s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/t.png"
+		);
+	/* width: 75px; */
+	aspect-ratio: 0.2778;
+}
+
+.body > header > h1 > span.i {
+	--delay: 1.5s;
+	background-image:
+		url(
+			"/wp-content/themes/default/assets/img/logo/i.png"
+		);
+	/* width: 47px; */
+	aspect-ratio: 0.1741;
+}
+
+.body > header > h2 {
+	font-family: var(--heading-font);
+}
+
+.body .song-player > ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.body .song-player > ul > li {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+	gap: var(--space);
+
+	margin: var(--space) 0;
+}
+
+.body .song-player header {
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.body .song-player .album {
+	flex-basis: 33%;
+}
+
+.body .song-player h3,
+.body .song-player h4 {
+	margin: 0 0 0.25em;
+}
+
+.body .song-player button {
+	cursor: pointer;
+	background: none;
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
+	
+	font-size: 2.75rem;
+	
+	/* height: 52px; */
+	/* padding: 48px 0 0; */
+	padding: 0;
+	margin: var(--space) 0;
+
+	aspect-ratio: 1;
+	overflow: hidden;
+}
+
+.body .song-player button.play {
+	background-image: url("/wp-content/themes/default/assets/icons/play_btn.png");
+}
+
+.body .song-player button.pause {
+	background-image: url("/wp-content/themes/default/assets/icons/pause_btn.png");
+}
+
+.body .song-player ul li button.pause,
+.body .song-player ul li.playing button.play {
+	display: none;
+}
+
+.body .song-player ul li.playing button.pause,
+.body .song-player ul li button.play {
+	display: block;
+}
+
+.body section.upcoming-gigs ol {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.body section.upcoming-gigs ol li {
+	margin-bottom: var(--space-large);
+}
+
+.body section.upcoming-gigs ol h3 {
+	font-size: 2.5rem;
+	margin-bottom: var(--space-small);
+}
+
+.body section.upcoming-gigs ol time {
+	font-size: 1.5rem;
+}
+
+.body section.upcoming-gigs ol p {
+	font-size: 1.25rem;
+}
+
+.body footer {
+	background-image: url("/wp-content/themes/default/assets/img/toy-band.png");
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	background-size: cover;
+	height: 600px;
+	width: calc(100% + 2 * var(--space-small));
+	margin-left: calc(-1 * var(--space-small));
+}
+
+.body footer > * {
+	padding: 0 var(--space-small);
+}

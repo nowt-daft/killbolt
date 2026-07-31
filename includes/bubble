@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+function bubble {
+	local CALLBACK=$1
+	local DIR=${2:-$PWD}
+
+	if ! [ $CALLBACK ]; then
+		return 1
+	fi
+
+	if [ $DIR == '/' ]; then
+		return 1
+	fi
+
+	if $CALLBACK $DIR; then
+		echo $DIR
+		return 0
+	fi
+
+	bubble $CALLBACK `dirname $DIR`
+}

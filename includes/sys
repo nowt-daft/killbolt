@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+include print
+
+function sys::has {
+	type -t $1 > /dev/null
+}
+
+function sys::install {
+	if sys::has apt; then
+		echo "apt install -y"
+	elif sys::has apk; then
+		echo "apk add -y"
+	elif sys::has dnf; then
+		echo "dnf install -y"
+	else
+		echo "echo -e \e[1;31m[UNSUPPORTED SYSTEM]\e[0m; exit 1;"
+		return 1
+	fi
+}
+
+function sys::mkdir {
+	if ! mkdir -p $1; then
+		print::error "🗁  [MKDIR] $1"
+		return 1
+	fi
+	print::ok "🗁  [CREATED] $(print --muted "$1")"
+}
+
+function sys::mkdir::cd {
+	if ! sys::mkdir $1; then
+		return 1
+	fi
+	cd $1
+	# print::info "↳ $1"
+}
+
+function sys::copy {
+	if ! cp -f $1 $2; then
+		print::error "🗐  [COPY] $1 -> $2"
+		return 1
+	fi
+	print::ok "🗐  [COPIED] $(print --muted "$(basename $1) -> $(basename $2)")"
+}
+
+function sys::ls {
+	local DIR=$1
+	local items=""
+	for item in $(ls -a $DIR); do
+		if ! [[ ".." == $item* ]]; then
+			echo $item
+		fi
+	done
+}
+
+function sys::file::contains {
+	local FILE=$1
+	local QUERY=$2
+
+	if ! cat $FILE | grep $QUERY &> /dev/null; then
+		return 1
+	fi
+	return 0
+}
+
+function sys::file::append {
+	local FILE=$1
+	local LINE=$2
+
+	touch $FILE
+	if ! sys::file::contains $FILE "$LINE"; then
+		echo "$LINE" >> $FILE
+	fi
+}
+
+function sys::file::set {
+	local FILE=$1
+	local KEY=$2
+	local VALUE=$3
+
+	if sys::file::contains $FILE "$KEY="; then
+		if ! sed -i "s|$KEY=.*|$KEY=$VALUE|g" $FILE; then
+			return 1
+		fi
+	else
+		echo "$KEY=$VALUE" >> $FILE
+	fi
+}
+
+function sys::file::set::uncomment {
+	local FILE=$1
+	local KEY=$2
+
+	if sys::file::contains $FILE "#$KEY="; then
+		if ! sed -i "s|^#$KEY=|$KEY=|g" $FILE; then
+			return 1
+		fi
+	else
+		echo "$KEY=" >> $FILE
+	fi
+}

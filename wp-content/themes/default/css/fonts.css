@@ -1,0 +1,45 @@
+@font-face {
+	font-family: "UnifrakturCook";
+	font-weight: bold;
+	font-style: normal;
+	src: url(
+		"../assets/fonts/UnifrakturCook/UnifrakturCook.ttf"
+	);
+}
+
+@font-face {
+	font-family: "Grenze";
+	font-weight: normal;
+	font-style: normal;
+	src: url(
+		"../assets/fonts/Grenze/Grenze.ttf"
+	);
+}
+
+@font-face {
+	font-family: "Grenze";
+	font-weight: normal;
+	font-style: italic;
+	src: url(
+		"../assets/fonts/Grenze/Grenze-italic.ttf"
+	);
+}
+
+@font-face {
+	font-family: "Grenze";
+	font-weight: bold;
+	font-style: normal;
+	src: url(
+		"../assets/fonts/Grenze/Grenze-bold.ttf"
+	);
+}
+
+@font-face {
+	font-family: "Grenze";
+	font-weight: bold;
+	font-style: italic;
+	src: url(
+		"../assets/fonts/Grenze/Grenze-bold-italic.ttf"
+	);
+}
+

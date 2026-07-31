@@ -1,0 +1,302 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include sys
+include print
+include template
+include bubble
+
+function wp::is-proj::check {
+	local DIR=$1
+	if [ -d $DIR/wp-content ] && [ -f $DIR/.env ]; then
+		return 0
+	fi
+	return 1
+}
+
+function wp::is-proj {
+	if bubble wp::is-proj::check &> /dev/null; then
+		return 0
+	fi
+	return 1
+}
+
+function wp::is-theme::check {
+	local DIR=$1
+	if [ -f $DIR/function.php ] && [ -f $DIR/style.css ]; then
+		return 0
+	fi
+	return 1
+}
+
+function wp::is-theme {
+	bubble wp::is-theme::check
+}
+
+if ! [ $ROOT ]; then
+	echo "💀 This Script must be called from WITHIN a Wordpress theme."
+	exit 1
+fi
+
+function wp::usage {
+	print::warning "USAGE: wp <site|theme|plugin|type|pattern|template> ..."
+}
+
+function wp::site::usage {
+	print::warning "USAGE: wp site <name> <wp-port> <sql-port> <production-url>"
+}
+
+function wp::site {
+	local NAME=$1
+	local WP_PORT=$2
+	local SQL_PORT=$3
+	local PRODUCTION_URL=$4
+
+	if [ -z $NAME ] || \
+		[ -z $WP_PORT ] || \
+		[ -z $SQL_PORT ]; then
+		wp::site::usage
+		return 1
+	fi
+
+	local DEV_URL="http://localhost:$WP_PORT"
+
+	if [ -z $PRODUCTION_URL ]; then
+		PRODUCTION_URL=$DEV_URL
+	fi
+
+	if ! [[ $PRODUCTION_URL == http* ]]; then
+		print::error "[INVALID] PRODUCTION_URL must start with http/https"
+		return 2
+	fi
+
+	if [[ $ROOT != $HOME ]]; then
+		print::error "[ABORT] Cannot create a site within a site."
+		return 3
+	fi
+
+	local DEST=$ROOT/src/$NAME
+
+	declare -A info
+	info[📂]="$DEST"
+	info[🔌]="MYSQL @ $SQL_PORT"
+	info[🌍]="https://localhost:$WP_PORT"
+
+	print::hr
+	println "✨ Generating Wordpress Website \"$NAME\""
+	print::table info
+
+	SHELL install $DEST
+	template::directory::copy wp/site $DEST
+	sys::copy $ROOT/bin/wp $DEST/bin
+
+	TEMPLATES=(pattern plugin theme type)
+	for template_dir in ${TEMPLATES[@]}; do
+		template::directory::copy wp/$template_dir $DEST/templates/wp/$template_dir
+	done
+
+	sys::file::append $DEST/.env "WP_DEBUG=true"
+	sys::file::append $DEST/.env "WP_PORT=$WP_PORT"
+
+	sys::file::append $DEST/.env "MYSQL_DATABASE=wp_db"
+	sys::file::append $DEST/.env "MYSQL_USER=wp_user"
+	sys::file::append $DEST/.env "MYSQL_PASSWORD=wp_user_password"
+	sys::file::append $DEST/.env "MYSQL_ROOT_PASSWORD=wp_root_password"
+	sys::file::append $DEST/.env "MYSQL_PORT=$SQL_PORT"
+	
+	sys::file::append $DEST/.env "DEV_URL=$DEV_URL"
+	sys::file::append $DEST/.env "PRODUCTION_URL=$PRODUCTION_URL"
+
+	cd $DEST
+	source .bashstrap
+	./bin/wp theme
+}
+
+function wp::theme::usage {
+	print::warning "USAGE: wp theme <name?=default>"
+}
+
+function wp::theme {
+	local NAME=${1:-default}
+
+	if ! wp::is-proj; then
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+	
+	print::hr
+	echo "✨ GENERATING WORDPRESS THEME <$NAME>"
+	echo "📂 $ROOT/wp-content/themes/$NAME"
+
+	local THEME_DIR=$ROOT/wp-content/themes/$NAME
+
+	template::directory::copy wp/theme $THEME_DIR
+
+	declare -A vars
+	vars["\$NAME"]=$NAME
+	template::file::render $THEME_DIR/style.css vars
+}
+
+function wp::plugin {
+	if ! wp::is-proj; then
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+
+	local NAME=$1
+
+	if [ -z $NAME ]; then
+		print::error "[MISSING] No plugin name provided."
+		return 1
+	fi
+
+	print::hr
+	echo "✨ GENERATING WORDPRESS PLUGIN <$NAME>"
+	echo "📂 $ROOT/wp-content/plugins/$NAME"
+
+	local PLUGIN_DIR=$ROOT/wp-content/plugins/$NAME
+
+	if [ -d $PLUGIN_DIR ]; then
+		echo "💀 plugins/$NAME ALREADY EXISTS"
+		exit 1
+	fi
+
+	template::directory::copy wp/plugin $PLUGIN_DIR
+	mv $PLUGIN_DIR/\$NAME.php $PLUGIN_DIR/$NAME.php
+
+	declare -A data
+	data["\$NAME"]="$NAME"
+
+	template::file::render $PLUGIN_DIR/$NAME.php data
+}
+
+function wp::type {
+	if ! wp::is-proj; then
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+
+	local TYPE_NAME=${1:-"custom-type"}
+	local PLURAL=${2:-$TYPE_NAME"s"}
+	local SLUG=${3:-"$PLURAL"}
+	local PLUG_NAME=${4:-"themes/default"}
+	
+	print::hr
+	echo "✨ CUSTOM POST TYPE <$PLUG_NAME/$TYPE_NAME>"
+	echo "📂 $ROOT/wp-content/$PLUG_NAME/types/$TYPE_NAME"
+
+	local TYPE_FILE=$ROOT/wp-content/$PLUG_NAME/types/$TYPE_NAME
+
+	if [ -f $TYPE_FILE ]; then
+		print::error "[ABORT] $TYPE_NAME ALREADY EXISTS"
+		return 2
+	fi
+
+	declare -A data
+	data["\$SINGLE"]="$TYPE_NAME"
+	data["\$PLURAL"]="$PLURAL"
+	data["\$SLUG"]="$SLUG"
+
+	template::file wp/type/\$NAME.php $TYPE_FILE data
+
+	if [[ $PLUG_NAME == themes/* ]]; then
+		cd $(dirname $TYPE_FILE)
+		wp::pattern single-$TYPE_NAME
+		wp::pattern archive-$TYPE_NAME
+
+		wp::template single-$TYPE_NAME
+		wp::template archive-$TYPE_NAME
+	fi
+}
+
+function wp::pattern {
+	local THEME_DIR=$(wp::is-theme $PWD)
+
+	if [ -z $THEME_DIR ] && [ -d $ROOT/wp-content/themes/default ]; then
+		THEME_DIR=$ROOT/wp-content/themes/default
+	else
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+
+	local NAME=${1:-pattern}
+	local PATTERN_DIR=$THEME_DIR/patterns
+	local FILE=$PATTERN_DIR/$NAME.php
+
+	declare -A view
+	view["\$NAME"]=$NAME
+	view["\$SLUG"]=$(basename $THEME_DIR)/$NAME
+
+	print::hr
+	echo "✨ GENERATING WORDPRESS PATTERN <$NAME>"
+	echo "📂 $FILE"
+
+	template::file wp/pattern/\$NAME.php $FILE view
+}
+
+function wp::template {
+	local THEME_DIR=$(wp::is-theme $PWD)
+
+	if [ -z $THEME_DIR ] && [ -d $ROOT/wp-content/themes/default ]; then
+		THEME_DIR=$ROOT/wp-content/themes/default
+	else
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+
+	local NAME=${1:-template}
+	local TEMPLATES=$THEME_DIR/templates
+	local FILE=$TEMPLATES/$NAME.html
+
+	print::hr
+	echo "✨ GENERATING WORDPRESS TEMPLATE <$NAME>"
+	echo "📂 $FILE"
+
+	template::file::copy wp/template/$NAME.html $FILE
+}
+
+function wp::template::part {
+	local THEME_DIR=$(wp::is-theme $PWD)
+
+	if [ -z $THEME_DIR ] && [ -d $ROOT/wp-content/themes/default ]; then
+		THEME_DIR=$ROOT/wp-content/themes/default
+	else
+		print::error "[ABORT] This command must be called from within a WP project."
+		return 1
+	fi
+
+	local NAME=${1:-"template-part"}
+	local PARTS=$THEME_DIR/parts
+	local FILE=$PARTS/$NAME.html
+
+	print::hr
+	echo "✨ GENERATING WORDPRESS TEMPLATE <$NAME>"
+	echo "📂 $FILE"
+
+	template::file::copy wp/template/$NAME.html $FILE
+}
+
+CMD=$1
+shift
+
+print::hr
+
+case $CMD in
+	site) wp::site $@ ;;
+	theme) wp::theme $@ ;;
+	plugin) wp::plugin $@;;
+	type) wp::type $@ ;;
+	pattern) wp::pattern $@ ;;
+	template) wp::template $@ ;;
+	part) wp::template::part $@ ;;
+	*) wp::usage ;;
+esac
+
+STATUS=$?
+print::hr
+
+if [[ $STATUS -gt 0 ]]; then
+	print::bad-exit $STATUS
+	exit $STATUS
+fi
+print::done $CMD

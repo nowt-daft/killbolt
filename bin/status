@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+
+print::hr
+print::info LOCAL STATUS
+print::hr
+git status
+
+if [ -z $SSH_INSTALLED ]; then
+	exit
+fi
+
+print::hr
+print::info REMOTE STATUS
+print::hr
+ssh $(basename $ROOT)-status

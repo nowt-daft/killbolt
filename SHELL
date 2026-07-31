@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+CMD=$1
+shift
+
+function SHELL::usage {
+	echo "USAGE: SHELL or SHELL install <target?=./>"
+}
+
+function SHELL::install {
+	local TARGET=${1:-"."}
+
+	if [[ $ROOT != $HOME ]]; then
+		echo -e "\e[31m[CRITICAL ERROR] Cannot install from a SHELL.\e[0m"
+		return 1
+	fi
+
+	##
+	source $BASHSTRAP
+	include print
+	include sys
+	include template
+
+	template::directory::copy SHELL $TARGET
+	
+	sys::copy $BASHSTRAP   $TARGET
+	sys::copy $ROOT/.path  $TARGET
+
+	sys::copy $ROOT/bin/SHELL  $TARGET
+
+	sys::copy $ROOT/bin/keys   $TARGET/bin
+	
+	sys::copy $ROOT/includes/print     $TARGET/includes
+	sys::copy $ROOT/includes/prompt    $TARGET/includes
+	sys::copy $ROOT/includes/string    $TARGET/includes
+	sys::copy $ROOT/includes/sys       $TARGET/includes
+	sys::copy $ROOT/includes/bubble    $TARGET/includes
+	sys::copy $ROOT/includes/template  $TARGET/includes
+
+	template::directory::copy ssh $TARGET/templates/ssh
+
+	sys::file::append $TARGET/.path.d/default $TARGET/bin
+
+	ENV=(\
+		"ROOT=$TARGET" \
+		"BASHSTRAP"="\$ROOT/.bashstrap" \
+		"TEMPLATES_DIR"="\$ROOT/templates" \
+	)
+	
+	for line in ${ENV[@]}; do
+		sys::file::append $TARGET/.env "$line"
+	done
+
+	print::hr
+}
+
+function SHELL::prefix {
+	print --muted "[$(basename $ROOT)]"
+}
+
+function SHELL::start {
+	if ! [ -f .bashstrap ]; then
+		echo -e "\e[31m[ERROR] Must be called from the ROOT of a project\e[0m"
+		return 1
+	fi
+
+	if [ $ROOT == $PWD ]; then
+		include print
+		print::warning "[ABORT] Already inside SHELL."
+		exit 1
+	fi
+
+	source .bashstrap
+	include print
+	include string
+	include sys
+
+	print::hr
+	println --inverse " SHELL :: $(basename $PWD) "
+	print::hr
+	print::list $(cat $ROOT/.env)
+	print::hr
+
+	print::list $(string::split $PATH ":")
+
+	print::hr
+	if [ -f $ROOT/.rc ]; then
+		println --inverse " RC :: $ROOT/.rc "
+		print::hr
+		source $ROOT/.rc
+	fi
+	print::ok
+	# THIS DOES NOT QUITE WORK... NEEDS A TWEAKIN'...
+	export PS1="$(SHELL::prefix) $PS1"
+	bash
+}
+
+if [ -z $CMD ]; then
+	if ! SHELL::start; then
+		STATUS=$?
+		echo -e "\e[31m[FAILED] Unable to start SHELL\e[0m"
+		exit $STATUS
+	fi
+	exit
+fi
+
+case $CMD in
+	install)
+		if ! SHELL::install $@; then
+			STATUS=$?
+			echo -e "\e[31m[FAILED] Unable to create new SHELL\e[0m"
+			exit $STATUS
+		fi
+		;;
+	*) SHELL::usage ;;
+esac
+

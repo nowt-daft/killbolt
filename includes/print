@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+
+function print::repeat {
+	local REPEAT=$1
+	local STRING=$2
+	if [[ $REPEAT -eq 0 ]]; then
+		return 0
+	fi
+	printf "$(eval printf "$STRING%.0s" {1..$REPEAT})"
+}
+
+function print::style {
+	declare -A STYLE
+	STYLE["normal"]=0
+	STYLE["bold"]=1
+	STYLE["muted"]=2
+	STYLE["italic"]=3
+	STYLE["underline"]=4
+	STYLE["blink"]=5
+	STYLE["inverse"]=7
+	STYLE["stroke"]=9
+
+	local keys=${!STYLE[@]}
+	local output=""
+	for arg in $@; do
+		if [[ $keys == *$arg* ]]; then
+			output="$output${STYLE[$arg]};"
+		fi
+	done
+	if [ -z $output ]; then
+		output="0;"
+	fi
+	printf "$output"
+}
+
+function print::color {
+	declare -A COLOURS
+	COLOURS["black"]=30
+	COLOURS["red"]=31
+	COLOURS["green"]=32
+	COLOURS["orange"]=33
+	COLOURS["blue"]=34
+	COLOURS["purple"]=35
+	COLOURS["aqua"]=36
+	COLOURS["grey"]=37
+	COLOURS["slate"]=90
+	COLOURS["pink"]=91
+	COLOURS["lime"]=92
+	COLOURS["yellow"]=93
+	COLOURS["azure"]=94
+	COLOURS["mauve"]=95
+	COLOURS["cyan"]=96
+	COLOURS["white"]=97
+
+	local keys=${!COLOURS[@]}
+	local fg=""
+	local bg=""
+	for arg in $@; do
+		if [[ $keys == *$arg* ]]; then
+			if [ -z $fg ]; then
+				fg="${COLOURS[$arg]};"
+			elif [ -z $bg ]; then
+				bg="$(( ${COLOURS[$arg]} + 10 ));"
+			fi
+		fi
+	done
+	printf "$fg$bg"
+}
+
+function print {
+	local opts=""
+	for arg in $@; do
+		if [[ $1 == --* ]]; then
+			opts="$opts${arg#--} "
+			shift
+		else
+			break
+		fi
+	done
+
+	printf "\e[$(print::style $opts)$(print::color $opts)m$@\e[0m"
+}
+
+function println {
+	print "$@\n"
+}
+
+function print::error {
+	local message=$@
+	println --bold --inverse --red " ☠ ERROR $(print --red " $message")"
+}
+
+function print::warning {
+	local message=$@
+	println --bold --inverse --orange " ⚠ WARNING $(print --orange " $message")"
+}
+
+function print::ok {
+	local message=$@
+	println --bold --inverse --green " ✓ OK $(print --green " $message")"
+}
+
+function print::log {
+	local message=$@
+	println --bold --inverse --grey " 🗐 LOG $(print --grey " $message")"
+}
+
+function print::info {
+	local message=$@
+	println --bold --inverse --azure " ℹ INFO $(print --azure " $message")"
+}
+
+function print::done {
+	local message=$@
+	println --bold --inverse --yellow " ✓ DONE $(print --yellow " $message")"
+}
+
+function print::bad-exit {
+	local message=$@
+	println --bold --inverse --red " ✗ BAD EXIT $(print --red " $message")"
+}
+
+function print::key-value {
+	local key=$1
+	local value=$2
+	println --bold --inverse --grey " $key $(print " $value")"
+}
+
+function print::list {
+	for item in $@; do
+		echo -e "  $(print --muted •) $(print $item)"
+	done
+}
+
+function print::table {
+	if [ -z $1 ]; then
+		print::error "print::error -> NO DATA PASSED."
+		return 1
+	fi
+
+	local -n rry=$1
+
+	for key in ${!rry[@]}; do
+		echo -e \
+			"  \
+$(print --bold --muted " • $key ") \
+$(print " ${rry[$key]}")"
+	done
+}
+
+function print::hr {
+	local char=${1:-"⁃"}
+	local quarter=$(( $(tput cols) / 4 ))
+	local size=$(( quarter * 3 ))
+
+	if [[ $size -lt 40 ]]; then
+		size=40
+	fi
+	println --muted "$(print::repeat $size $char)"
+}
+
+function print::erase-line {
+	printf "\e[1G\e[0K"
+}
+
+function print::countdown {
+	local TIME=$1
+	local MSG=$2
+
+	if [[ $TIME -eq 0 ]] || [[ $TIME -lt 0 ]]; then
+		printf "\n"
+		return
+	fi
+
+	print --bold --inverse --lime " ⏲️ $TIME $(print " $MSG")"
+	sleep 1
+	print::erase-line
+	print::countdown $(( $TIME - 1 )) "$MSG"
+}

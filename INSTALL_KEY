@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+# source $BASHSTRAP
+source .bashstrap
+include sys
+include print
+include prompt
+
+KEY_FILE=$1
+
+if [ -z $KEY_FILE ]; then
+	KEY_FILE=$(prompt::input "PATH TO KEY FILE")
+fi
+
+if ! [ -f $KEY_FILE ]; then
+	print::error "[INVALID] Must pass or enter a valid key file."
+	exit 1
+fi
+
+NAME=$(basename $ROOT)
+print::hr
+println ✨ INSTALLING KEY FOR $NAME
+print::info --muted "🔑 $KEY_FILE"
+print::hr
+
+println --muted "CHECKING ENVIRONMENT..."
+sys::file::set::uncomment $ROOT/.env.vars SSH_USER
+sys::file::set::uncomment $ROOT/.env.vars SSH_PORT
+sys::file::set::uncomment $ROOT/.env.vars SSH_PATH
+
+if [[ $PRODUCTION_URL == $DEV_URL ]]; then
+	print::hr
+	if prompt::confirm "Change Production URL [$DEV_URL]"; then
+		sys::file::set $ROOT/.env PRODUCTION_URL $(prompt::input "PRODUCTION URL (must begin with protocol)")
+	fi
+fi
+
+prompt::form $ROOT/.env.vars $ROOT/.env
+set-env $ROOT/.env
+
+chmod 600 $KEY_FILE
+keys add $NAME $KEY_FILE
+
+print::hr =
+
+if [ -z $SSH_USER ]; then
+	SSH_USER=""
+fi
+
+if [ -z $SSH_PORT ]; then
+	SSH_PORT=2222
+fi
+
+if [ -z $SSH_PATH ]; then
+	SSH_PATH="./"
+fi
+
+USR=${2:-$SSH_USER}
+HOST=${3:-$PRODUCTION_URL}
+PORT=${4:-$SSH_PORT}
+DIR=${5:-$SSH_PATH}
+
+if [ -z $USR ]; then
+	USR=$(prompt::input "USERNAME")
+fi
+
+if [ -z $HOST ]; then
+	HOST=$(prompt::input "HOSTNAME")
+fi
+
+if [ -z $PORT ]; then
+	PORT=$(prompt::input "SSH PORT")
+fi
+
+if [ -z $DIR ]; then
+	DIR=$(prompt::input "URL PATH")
+fi
+
+if [[ $HOST == https://* ]]; then
+	HOST=${HOST#https://}
+elif [[ $HOST == http://* ]]; then
+	HOST=${HOST_URL#http://}
+fi
+
+print::hr
+
+keys config $NAME $USR $HOST $PORT $DIR
+
+sys::file::set $ROOT/.env SSH_INSTALLED true

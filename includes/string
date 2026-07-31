@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+function string::split {
+	local SOURCE=$1
+	local DELIM=${2:-":"}
+	local OLD_IFS="$IFS"
+
+	IFS="$DELIM"
+	local parts=( $SOURCE )
+	IFS="$OLD_IFS"
+
+	echo ${parts[@]}
+}
+
+function string::contains {
+	local SOURCE=$1
+	local QUERY=$2
+
+	if [[ $SOURCE == *$QUERY* ]]; then
+		return 0
+	fi
+	return 1
+}

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+source .bashstrap
+include sys
+include print
+include prompt
+
+mkdir -p database/data/
+
+prompt::form $ROOT/.env.vars $ROOT/.env
+
+if [ -z $WP_INITIALISED ]; then
+	print::hr
+	println --muted "INITIALISING PROJECT"
+	print::hr =
+
+	git init
+
+	sys::file::set $ROOT/.env "WP_INITIALISED" "true"
+
+	print::hr
+	print::info "DOCKER COMPOSE UP -> init-compose.yml"
+	print::hr
+	print::warning "Wait until complete. Then execute run from SHELL."
+	print::hr _
+	print::hr =
+	
+	run --init
+fi

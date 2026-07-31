@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+source $BASHSTRAP
+include print
+
+if [[ $SSH_INSTALLED == true ]]; then
+	print::hr
+	print::info FORCING SERVER TO COMMIT CHANGES
+	print::hr
+	ssh $(basename $ROOT)-commit
+fi
+
+print::hr
+print::info UPDATING LOCAL REPO
+print::hr
+git pull
+
+pull-db
+
+print::hr
+print::done
