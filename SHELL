@@ -77,6 +77,11 @@ function SHELL::start {
 
 	print::hr
 	println --inverse " SHELL :: $(basename $PWD) "
+	if [ -f $ROOT/.rc ]; then
+		println --inverse " RC :: $ROOT/.rc "
+		print::hr
+		source $ROOT/.rc
+	fi
 	print::hr
 	print::list $(cat $ROOT/.env)
 	print::hr
@@ -84,11 +89,6 @@ function SHELL::start {
 	print::list $(string::split $PATH ":")
 
 	print::hr
-	if [ -f $ROOT/.rc ]; then
-		println --inverse " RC :: $ROOT/.rc "
-		print::hr
-		source $ROOT/.rc
-	fi
 	print::ok
 	# THIS DOES NOT QUITE WORK... NEEDS A TWEAKIN'...
 	export PS1="$(SHELL::prefix) $PS1"

@@ -9,7 +9,7 @@ function __find_root {
 		return 1
 	fi
 
-	if [ -d $DIR/.bashstrap ]; then
+	if [ -f $DIR/.bashstrap ]; then
 		echo $DIR
 		return 0
 	fi
