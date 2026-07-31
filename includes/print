@@ -150,13 +150,13 @@ $(print " ${rry[$key]}")"
 
 function print::hr {
 	local char=${1:-"⁃"}
-	local quarter=$(( $(tput cols) / 4 ))
-	local size=$(( quarter * 3 ))
+	# local quarter=$(( $(tput cols) / 4 ))
+	# local size=$(( quarter * 3 ))
 
-	if [[ $size -lt 40 ]]; then
-		size=40
-	fi
-	println --muted "$(print::repeat $size $char)"
+	# if [[ $size -lt 40 ]]; then
+		# size=40
+	# fi
+	println --muted "$(print::repeat 40 $char)"
 }
 
 function print::erase-line {
