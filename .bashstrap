@@ -56,5 +56,6 @@ function set-env {
 set-env
 if [ -z $ROOT ]; then
 	export ROOT=$(__find_root)
+	export BASHSTRAP=$ROOT/.bashstrap
 fi
 import   $ROOT/.path
