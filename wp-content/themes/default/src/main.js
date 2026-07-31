@@ -1,28 +1,28 @@
 import SongListPlayer from "./song-list-player.js";
 
-const OVERLAY_STATE = 'open';
-const DISABLED_STATE = 'disabled';
+// const OVERLAY_STATE = 'open';
+// const DISABLED_STATE = 'disabled';
 const VISIBLE_STATE = 'visible';
 
-const handle = document.querySelector('section.chrome');
-const aside = document.querySelector('aside.website');
+// const handle = document.querySelector('section.chrome');
+// const aside = document.querySelector('aside.website');
 
 const body = document.querySelector('.body');
 const heading = document.querySelector(
 	'.body > header > h1'
 );
 
-const player = new SongListPlayer(
+new SongListPlayer(
 	body.querySelector('.song-player ul')
 );
 
-handle.addEventListener(
-	'click',
-	() => {
-		aside.classList.toggle(OVERLAY_STATE);
-		document.body.classList.toggle(DISABLED_STATE);
-	}
-);
+// handle.addEventListener(
+// 	'click',
+// 	() => {
+// 		aside.classList.toggle(OVERLAY_STATE);
+// 		document.body.classList.toggle(DISABLED_STATE);
+// 	}
+// );
 
 const spans = [...heading.textContent.trim()].map(
 	(letter, index) => {
