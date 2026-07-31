@@ -15,6 +15,9 @@
 !compose.yml
 !init-compose.yml
 
+index.html
+nginx.config
+
 # SCRIPTS
 !INIT
 !INIT_SERVER
